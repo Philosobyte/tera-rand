@@ -26,9 +26,7 @@ pub fn random_uuid(_args: &HashMap<String, Value>) -> Result<Value> {
 #[cfg(test)]
 mod tests {
     use crate::common::tests::test_tera_rand_function;
-    use crate::random_uint32;
     use crate::uuid::*;
-    use tera::{Context, Tera};
     use tracing_test::traced_test;
 
     #[test]
@@ -41,25 +39,5 @@ mod tests {
             r#"{ "some_field": "{{ random_uuid() }}" }"#,
             r#"\{ "some_field": "[\da-f]{8}-([\da-f]{4}-){3}[\da-f]{12}" }"#,
         );
-    }
-
-    fn test_stuff() {
-        let mut tera: Tera = Tera::default();
-        tera.register_function("random_uint32", random_uint32);
-        let context: Context = Context::new();
-        // bound by both start and end
-        let result: String = tera
-            .render_str("{{ random_uint32(start=49152, end=65535) }}", &context)
-            .unwrap();
-        // bound by just start
-        let result: String = tera
-            .render_str("{{ random_uint32(start=4294967290) }}", &context)
-            .unwrap();
-        // bound by just end
-        let result: String = tera
-            .render_str("{{ random_uint32(end=65535) }}", &context)
-            .unwrap();
-        // bound by neither start nor end
-        let result: String = tera.render_str("{{ random_uint32() }}", &context).unwrap();
     }
 }

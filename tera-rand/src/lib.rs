@@ -71,4 +71,4 @@ mod string;
 pub use string::*;
 
 mod uuid;
-pub use uuid::*;
+pub use crate::uuid::*;
