@@ -8,7 +8,7 @@ edition = "2021"
 keywords = ["fake",]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Philosobyte/tera-rand"
-rust-version = "1.65"
+rust-version = "1.72"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
