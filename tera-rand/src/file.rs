@@ -8,7 +8,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use tera::{to_value, Result, Value};
-use tracing::trace;
 
 lazy_static! {
     static ref FILE_CACHE: DashMap<String, Vec<String>> = DashMap::new();
@@ -47,7 +46,6 @@ pub fn random_from_file(args: &HashMap<String, Value>) -> Result<Value> {
         for line_result in buf_reader.lines() {
             let line: String = line_result
                 .map_err(|source| read_file_error("random_from_file", filepath.clone(), source))?;
-            trace!(line);
             file_values.push(line);
         }
 
@@ -61,7 +59,6 @@ pub fn random_from_file(args: &HashMap<String, Value>) -> Result<Value> {
     match possible_values_opt {
         Some(reference) => {
             let possible_values: &Vec<String> = reference.value();
-            trace!("possible_values: {possible_values:?}");
             let index_to_sample: usize = thread_rng().gen_range(0usize..possible_values.len());
 
             match possible_values.get(index_to_sample) {

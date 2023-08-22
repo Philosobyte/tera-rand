@@ -3,7 +3,6 @@ use rand::{thread_rng, Rng};
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use tera::{to_value, Result, Value};
-use tracing::trace;
 
 /// A Tera function to generate a random IPv4 address.
 ///
@@ -162,7 +161,6 @@ pub fn random_ipv4_cidr(args: &HashMap<String, Value>) -> Result<Value> {
 
     let random_prefix_length: u32 = thread_rng().gen_range(length_start..=length_end);
     let bits_to_shift: u32 = u32::BITS - random_prefix_length;
-    trace!("random_prefix_length: {random_prefix_length}, bits_to_shift: {bits_to_shift}, random_addr: {random_addr}");
 
     let random_prefix: u32 = match bits_to_shift {
         u32::BITS => 0u32,
@@ -227,7 +225,6 @@ pub fn random_ipv6_cidr(args: &HashMap<String, Value>) -> Result<Value> {
 
     let random_prefix_length: u32 = thread_rng().gen_range(length_start..=length_end);
     let bits_to_shift: u32 = u128::BITS - random_prefix_length;
-    trace!("random_prefix_length: {random_prefix_length}, bits_to_shift: {bits_to_shift}, random_addr: {random_addr}");
 
     let random_prefix: u128 = match bits_to_shift {
         u128::BITS => 0u128,
