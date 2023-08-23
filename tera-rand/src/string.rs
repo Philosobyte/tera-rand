@@ -20,21 +20,33 @@ use tera::{to_value, Result, Value};
 /// tera.register_function("random_string", random_string);
 /// let context: Context = Context::new();
 ///
-/// // generate a string with the default length of 8
-/// let rendered: String = tera.render_str("{{ random_string() }}", &context).unwrap();
-/// // generate a string with a custom length of 16
-/// let rendered: String = tera.render_str("{{ random_string(length=16) }}", &context).unwrap();
+/// // use the default length of 8
+/// let rendered: String = tera
+///     .render_str("{{ random_string() }}", &context)
+///     .unwrap();
+/// // use a custom length of 16
+/// let rendered: String = tera
+///     .render_str("{{ random_string(length=16) }}", &context)
+///     .unwrap();
+/// // use alphanumeric space (which is also the default)
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_string(space="alphanumeric") }}"#, &context)
+///     .unwrap();
+/// // use standard space
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_string(space="standard") }}"#, &context)
+///     .unwrap();
 /// ```
 pub fn random_string(args: &HashMap<String, Value>) -> Result<Value> {
-    let str_length: usize = parse_arg(args, "random_string", "length")?.unwrap_or(8usize);
+    let str_length: usize = parse_arg(args, "length")?.unwrap_or(8usize);
 
     let space_as_string: String =
-        parse_arg(args, "random_string", "space")?.unwrap_or_else(|| String::from("alphanumeric"));
+        parse_arg(args, "space")?.unwrap_or_else(|| String::from("alphanumeric"));
 
     let random_string: String = match space_as_string.as_str() {
         "alphanumeric" => Ok(Alphanumeric.sample_string(&mut thread_rng(), str_length)),
         "standard" => Ok(Standard.sample_string(&mut thread_rng(), str_length)),
-        _ => Err(unsupported_arg("random_string", "space", space_as_string)),
+        _ => Err(unsupported_arg("space", space_as_string)),
     }?;
     let json_value: Value = to_value(random_string)?;
     Ok(json_value)

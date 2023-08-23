@@ -3,35 +3,35 @@ use tera::Error;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-enum TeraRandError {
-    #[error("Unable to parse argument for `{parameter}` in function `{function} due to error`")]
-    UnableToParseArgument {
-        function: &'static str,
-        parameter: &'static str,
-        source: anyhow::Error,
-    },
-    #[error("Unsupported argument `{argument}` for `{parameter}` in function `{function}`")]
+pub(crate) enum TeraRandError {
+    #[error("Unable to parse argument for `{0}` due to error")]
+    UnableToParseArgument(&'static str, #[source] anyhow::Error),
+
+    #[error("Unsupported argument `{argument}` for `{parameter}`")]
     UnsupportedArgument {
-        function: &'static str,
         parameter: &'static str,
         argument: String,
     },
-    #[error("Required argument missing for parameter `{parameter}` in function `{function}`")]
-    RequiredArgumentMissing {
-        function: &'static str,
-        parameter: &'static str,
+
+    #[error("Required argument missing for parameter `{0}`")]
+    RequiredArgumentMissing(&'static str),
+
+    #[error("Unable to read file at path: `{0}`")]
+    UnableToReadFile(String, #[source] anyhow::Error),
+
+    #[error("Unable to sample from an empty file: `{0}`")]
+    EmptyFile(String),
+
+    #[error(
+        "Provided cidr length {provided_bound}, which is out of bounds. \
+         Cidr length should be between {valid_bound_start} and {valid_bound_end}"
+    )]
+    CidrPrefixLengthOutOfBounds {
+        provided_bound: u32,
+        valid_bound_start: u32,
+        valid_bound_end: u32,
     },
-    #[error("Unable to read file at path: `{path}`")]
-    UnableToReadFile {
-        function: &'static str,
-        path: String,
-        source: anyhow::Error,
-    },
-    #[error("Unable to sample from an empty file: `{path}`")]
-    EmptyFile {
-        function: &'static str,
-        path: String,
-    },
+
     #[error("Internal error: {0}")]
     Internal(String),
 }
@@ -41,30 +41,20 @@ enum TeraRandError {
 impl Into<tera::Error> for TeraRandError {
     fn into(self) -> Error {
         match &self {
-            Self::UnableToParseArgument {
-                function,
-                parameter: _parameter,
-                source: _source,
-            } => tera::Error::call_function(*function, self),
+            Self::UnableToParseArgument(_parameter, _source) => tera::Error::msg(self),
             Self::UnsupportedArgument {
-                function,
                 parameter: _parameter,
                 argument: _argument,
-            } => tera::Error::call_function(*function, self),
-            Self::RequiredArgumentMissing {
-                function,
-                parameter: _parameter,
-            } => tera::Error::call_function(*function, self),
-            Self::UnableToReadFile {
-                function,
-                path: _path,
-                source: _source,
-            } => tera::Error::call_function(*function, self),
-            Self::EmptyFile {
-                function,
-                path: _path,
-            } => tera::Error::call_function(*function, self),
-            Self::Internal(_msg) => tera::Error::from(self.to_string()),
+            } => tera::Error::msg(self),
+            Self::RequiredArgumentMissing(_parameter) => tera::Error::msg(self),
+            Self::UnableToReadFile(_path, _source) => tera::Error::msg(self),
+            Self::EmptyFile(_path) => tera::Error::msg(self),
+            Self::CidrPrefixLengthOutOfBounds {
+                provided_bound: _provided_bound,
+                valid_bound_start: _valid_bound_start,
+                valid_bound_end: _valid_bound_end,
+            } => tera::Error::msg(self),
+            Self::Internal(_msg) => tera::Error::msg(self.to_string()),
         }
     }
 }
@@ -72,54 +62,47 @@ impl Into<tera::Error> for TeraRandError {
 // convenience
 
 pub(crate) fn arg_parse_error(
-    function: &'static str,
     parameter: &'static str,
     source: impl Into<anyhow::Error>,
 ) -> tera::Error {
-    let tera_rand_error: TeraRandError = TeraRandError::UnableToParseArgument {
-        function,
-        parameter,
-        source: anyhow!(source),
-    };
+    let tera_rand_error: TeraRandError =
+        TeraRandError::UnableToParseArgument(parameter, anyhow!(source));
     Into::<tera::Error>::into(tera_rand_error)
 }
 
-pub(crate) fn unsupported_arg(
-    function: &'static str,
-    parameter: &'static str,
-    argument: String,
-) -> tera::Error {
+pub(crate) fn unsupported_arg(parameter: &'static str, argument: String) -> tera::Error {
     let tera_rand_error: TeraRandError = TeraRandError::UnsupportedArgument {
-        function,
         parameter,
         argument,
     };
     Into::<tera::Error>::into(tera_rand_error)
 }
 
-pub(crate) fn missing_arg(function: &'static str, parameter: &'static str) -> tera::Error {
-    let tera_rand_error: TeraRandError = TeraRandError::RequiredArgumentMissing {
-        function,
-        parameter,
-    };
+pub(crate) fn missing_arg(parameter: &'static str) -> tera::Error {
+    let tera_rand_error: TeraRandError = TeraRandError::RequiredArgumentMissing(parameter);
     Into::<tera::Error>::into(tera_rand_error)
 }
 
-pub(crate) fn read_file_error(
-    function: &'static str,
-    path: String,
-    source: impl Into<anyhow::Error>,
+pub(crate) fn read_file_error(path: String, source: impl Into<anyhow::Error>) -> tera::Error {
+    let tera_rand_error: TeraRandError = TeraRandError::UnableToReadFile(path, anyhow!(source));
+    Into::<tera::Error>::into(tera_rand_error)
+}
+
+pub(crate) fn empty_file(path: String) -> tera::Error {
+    let tera_rand_error: TeraRandError = TeraRandError::EmptyFile(path);
+    Into::<tera::Error>::into(tera_rand_error)
+}
+
+pub(crate) fn cidr_prefix_length_out_of_bounds(
+    provided_bound: u32,
+    valid_bound_start: u32,
+    valid_bound_end: u32,
 ) -> tera::Error {
-    let tera_rand_error: TeraRandError = TeraRandError::UnableToReadFile {
-        function,
-        path,
-        source: anyhow!(source),
+    let tera_rand_error: TeraRandError = TeraRandError::CidrPrefixLengthOutOfBounds {
+        provided_bound,
+        valid_bound_start,
+        valid_bound_end,
     };
-    Into::<tera::Error>::into(tera_rand_error)
-}
-
-pub(crate) fn empty_file(function: &'static str, path: String) -> tera::Error {
-    let tera_rand_error: TeraRandError = TeraRandError::EmptyFile { function, path };
     Into::<tera::Error>::into(tera_rand_error)
 }
 

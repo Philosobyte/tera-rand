@@ -36,7 +36,6 @@ pub fn random_bool(_args: &HashMap<String, Value>) -> tera::Result<Value> {
 ///
 /// let context: Context = Context::new();
 /// let rendered: String = tera.render_str("{{ random_char() }}", &context).unwrap();
-///
 /// ```
 pub fn random_char(_args: &HashMap<String, Value>) -> Result<Value> {
     let random_value: char = random::<char>();
@@ -84,7 +83,7 @@ pub fn random_char(_args: &HashMap<String, Value>) -> Result<Value> {
 ///     .unwrap();
 /// ```
 pub fn random_uint32(args: &HashMap<String, Value>) -> Result<Value> {
-    parse_range_and_gen_value_in_range(args, "random_uint32", u32::MIN, u32::MAX)
+    parse_range_and_gen_value_in_range(args, u32::MIN, u32::MAX)
 }
 
 /// A Tera function to generate a random unsigned 64-bit integer.
@@ -127,7 +126,7 @@ pub fn random_uint32(args: &HashMap<String, Value>) -> Result<Value> {
 ///     .unwrap();
 /// ```
 pub fn random_uint64(args: &HashMap<String, Value>) -> Result<Value> {
-    parse_range_and_gen_value_in_range(args, "random_uint64", u64::MIN, u64::MAX)
+    parse_range_and_gen_value_in_range(args, u64::MIN, u64::MAX)
 }
 
 /// A Tera function to generate a random signed 32-bit integer.
@@ -158,11 +157,11 @@ pub fn random_uint64(args: &HashMap<String, Value>) -> Result<Value> {
 ///     .unwrap();
 /// // bound by just start
 /// let rendered: String = tera
-///     .render_str("{{ random_int32(start=-1) }}", &context)
+///     .render_str("{{ random_int32(start=1) }}", &context)
 ///     .unwrap();
 /// // bound by just end
 /// let rendered: String = tera
-///     .render_str("{{ random_int32(end=0) }}", &context)
+///     .render_str("{{ random_int32(end=-1) }}", &context)
 ///     .unwrap();
 /// // bound by neither start nor end
 /// let rendered: String = tera
@@ -170,7 +169,7 @@ pub fn random_uint64(args: &HashMap<String, Value>) -> Result<Value> {
 ///     .unwrap();
 /// ```
 pub fn random_int32(args: &HashMap<String, Value>) -> Result<Value> {
-    parse_range_and_gen_value_in_range(args, "random_int32", i32::MIN, i32::MAX)
+    parse_range_and_gen_value_in_range(args, i32::MIN, i32::MAX)
 }
 
 /// A Tera function to generate a random signed 64-bit integer.
@@ -213,7 +212,7 @@ pub fn random_int32(args: &HashMap<String, Value>) -> Result<Value> {
 ///     .unwrap();
 /// ```
 pub fn random_int64(args: &HashMap<String, Value>) -> Result<Value> {
-    parse_range_and_gen_value_in_range(args, "random_int64", i64::MIN, i64::MAX)
+    parse_range_and_gen_value_in_range(args, i64::MIN, i64::MAX)
 }
 
 /// A Tera function to generate a random 32-bit float.
@@ -245,7 +244,7 @@ pub fn random_int64(args: &HashMap<String, Value>) -> Result<Value> {
 ///     .unwrap();
 /// // bound by just start
 /// let rendered: String = tera
-///     .render_str("{{ random_float32(start=-1.0) }}", &context)
+///     .render_str("{{ random_float32(start=0.0) }}", &context)
 ///     .unwrap();
 /// // bound by just end
 /// let rendered: String = tera
@@ -257,7 +256,7 @@ pub fn random_int64(args: &HashMap<String, Value>) -> Result<Value> {
 ///     .unwrap();
 /// ```
 pub fn random_float32(args: &HashMap<String, Value>) -> Result<Value> {
-    parse_range_and_gen_value_in_range(args, "random_float32", 0.0, 1.0)
+    parse_range_and_gen_value_in_range(args, 0.0, 1.0)
 }
 
 /// A Tera function to generate a random 64-bit float.
@@ -289,7 +288,7 @@ pub fn random_float32(args: &HashMap<String, Value>) -> Result<Value> {
 ///     .unwrap();
 /// // bound by just start
 /// let rendered: String = tera
-///     .render_str("{{ random_float64(start=-1.0) }}", &context)
+///     .render_str("{{ random_float64(start=0.0) }}", &context)
 ///     .unwrap();
 /// // bound by just end
 /// let rendered: String = tera
@@ -301,7 +300,7 @@ pub fn random_float32(args: &HashMap<String, Value>) -> Result<Value> {
 ///     .unwrap();
 /// ```
 pub fn random_float64(args: &HashMap<String, Value>) -> Result<Value> {
-    parse_range_and_gen_value_in_range(args, "random_float64", 0.0, 1.0)
+    parse_range_and_gen_value_in_range(args, 0.0, 1.0)
 }
 
 #[cfg(test)]

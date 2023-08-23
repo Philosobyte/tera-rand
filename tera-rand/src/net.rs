@@ -1,4 +1,5 @@
 use crate::common::{gen_value_in_range, parse_arg};
+use crate::error::cidr_prefix_length_out_of_bounds;
 use rand::{thread_rng, Rng};
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, Ipv6Addr};
@@ -31,11 +32,11 @@ use tera::{to_value, Result, Value};
 ///     .unwrap();
 /// // bound by just start
 /// let rendered: String = tera
-///     .render_str(r#"{{ random_ipv4(start="100.0.0.0") }}"#, &context)
+///     .render_str(r#"{{ random_ipv4(start="127.0.0.0") }}"#, &context)
 ///     .unwrap();
 /// // bound by just end
 /// let rendered: String = tera
-///     .render_str(r#"{{ random_ipv4(end="169.254.0.0") }}"#, &context)
+///     .render_str(r#"{{ random_ipv4(end="128.0.0.0") }}"#, &context)
 ///     .unwrap();
 /// // bound by neither start nor end
 /// let rendered: String = tera
@@ -43,11 +44,9 @@ use tera::{to_value, Result, Value};
 ///     .unwrap();
 /// ```
 pub fn random_ipv4(args: &HashMap<String, Value>) -> Result<Value> {
-    let start_opt: Option<u32> =
-        parse_arg(args, "random_ipv4", "start")?.map(|start: Ipv4Addr| start.into());
+    let start_opt: Option<u32> = parse_arg(args, "start")?.map(|start: Ipv4Addr| start.into());
 
-    let end_opt: Option<u32> =
-        parse_arg(args, "random_ipv4", "end")?.map(|end: Ipv4Addr| end.into());
+    let end_opt: Option<u32> = parse_arg(args, "end")?.map(|end: Ipv4Addr| end.into());
 
     let random_ipv4: u32 = gen_value_in_range(start_opt, end_opt, u32::MIN, u32::MAX);
     let random_ipv4: Ipv4Addr = random_ipv4.into();
@@ -97,10 +96,9 @@ pub fn random_ipv4(args: &HashMap<String, Value>) -> Result<Value> {
 /// ```
 pub fn random_ipv6(args: &HashMap<String, Value>) -> Result<Value> {
     let start_opt: Option<u128> =
-        parse_arg(args, "random_ipv6", "start")?.map(|start_ipv6: Ipv6Addr| start_ipv6.into());
+        parse_arg(args, "start")?.map(|start_ipv6: Ipv6Addr| start_ipv6.into());
 
-    let end_opt: Option<u128> =
-        parse_arg(args, "random_ipv6", "end")?.map(|end_ipv6: Ipv6Addr| end_ipv6.into());
+    let end_opt: Option<u128> = parse_arg(args, "end")?.map(|end_ipv6: Ipv6Addr| end_ipv6.into());
 
     let random_ipv6: u128 = gen_value_in_range(start_opt, end_opt, u128::MIN, u128::MAX);
     let random_ipv6: Ipv6Addr = random_ipv6.into();
@@ -111,15 +109,23 @@ pub fn random_ipv6(args: &HashMap<String, Value>) -> Result<Value> {
 
 /// A Tera function to generate a random IPv4 CIDR address.
 ///
-/// The `start` parameter takes an IPv4 address to indicate the beginning of the
-/// range (inclusive). If `start` is not passed in, it defaults to `0.0.0.0`.
+/// The `length_start` parameter takes an integer between 0 and 32 (inclusive) to indicate the
+/// random prefix length of the generated CIDR should be at least `length_start`. If
+/// `length_start` is not passed in, it defaults to 0.
 ///
-/// The `end` parameter also takes an IPv4 address indicating the end of the range,
-/// which is also inclusive. An inclusive range allows `255.255.255.255`
-/// to be sampled where an exclusive range does not. If `end` is not passed in, it defaults to
-/// `255.255.255.255`.
+/// The `length_end` parameter takes an integer between 0 and 32 (inclusive) to indicate the
+/// random prefix length of the generated CIDR should be at most `length_end`. If
+/// `length_end` is not passed in, it defaults to 32.
 ///
-/// It is possible to pass in both `start` and `end`, just one of them, or neither.
+/// The `addr_start` parameter takes an IPv4 address. This address will be used as the inclusive
+/// lower bound for generating the random address before the address is masked into a prefix.
+/// If `addr_start` is not passed in, it defaults to `0.0.0.0`.
+///
+/// The `addr_end` parameter takes an IPv4 address. This address will be used as the inclusive
+/// upper bound for generating the random address before the address is masked into a prefix.
+/// If `addr_start` is not passed in, it defaults to `0.0.0.0`.
+///
+/// All of these parameters are optional, and it is possible to use any combination.
 ///
 /// # Example usage
 ///
@@ -131,33 +137,64 @@ pub fn random_ipv6(args: &HashMap<String, Value>) -> Result<Value> {
 /// tera.register_function("random_ipv4_cidr", random_ipv4_cidr);
 /// let context: Context = Context::new();
 ///
-/// // bound by both start and end
-/// let rendered: String = tera
-///     .render_str(r#"{{ random_ipv4_cidr(start="fc00::/8", end="fd00::/8") }}"#, &context)
-///     .unwrap();
-/// // bound by just start
-/// let rendered: String = tera
-///     .render_str(r#"{{ random_ipv4_cidr(start="fc00::/8") }}"#, &context )
-///     .unwrap();
-/// // bound by just end
-/// let rendered: String = tera
-///     .render_str(r#"{{ random_ipv4_cidr(end="fd00::/8") }}"#, &context)
-///     .unwrap();
-/// // bound by neither start nor end
+/// // bound by neither prefix bit values nor the prefix length
 /// let rendered: String = tera
 ///     .render_str("{{ random_ipv4_cidr() }}", &context)
 ///     .unwrap();
+///
+/// // prefix length bound by start and end lengths
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv4_cidr(length_start=16, length_end=24) }}"#, &context)
+///     .unwrap();
+/// // prefix length bound by start length
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv4_cidr(length_start=16) }}"#, &context)
+///     .unwrap();
+/// // prefix length bound by end length
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv4_cidr(length_end=24) }}"#, &context)
+///     .unwrap();
+///
+/// // prefix bits bound by a start address and end address
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv4_cidr(addr_start="10.120.0.0", addr_end="10.140.0.0") }}"#, &context)
+///     .unwrap();
+/// // prefix bits bound by a start address
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv4_cidr(start="10.120.0.0") }}"#, &context )
+///     .unwrap();
+/// // prefix bits bound by an end address
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv4_cidr(addr_end="10.140.0.0") }}"#, &context)
+///     .unwrap();
+///
+/// // prefix length bound by both prefix bit values and length
+/// let rendered: String = tera
+///     .render_str(
+///         r#"{{ random_ipv4_cidr(
+///                   addr_start="10.120.0.0",
+///                   addr_end="10.140.0.0",
+///                   length_start=16,
+///                   length_end=24
+///               ) }}"#,
+///         &context
+///     )
+///     .unwrap();
 /// ```
 pub fn random_ipv4_cidr(args: &HashMap<String, Value>) -> Result<Value> {
-    let addr_start_opt: Option<u32> = parse_arg(args, "random_ipv4_cidr", "addr_start")?
-        .map(|addr_start: Ipv4Addr| addr_start.into());
+    let addr_start_opt: Option<u32> =
+        parse_arg(args, "addr_start")?.map(|addr_start: Ipv4Addr| addr_start.into());
     let addr_end_opt: Option<u32> =
-        parse_arg(args, "random_ipv4_cidr", "addr_end")?.map(|addr_end: Ipv4Addr| addr_end.into());
+        parse_arg(args, "addr_end")?.map(|addr_end: Ipv4Addr| addr_end.into());
 
     let random_addr: u32 = gen_value_in_range(addr_start_opt, addr_end_opt, u32::MIN, u32::MAX);
 
-    let length_start: u32 = parse_arg(args, "random_ipv4_cidr", "length_start")?.unwrap_or(0u32);
-    let length_end: u32 = parse_arg(args, "random_ipv4_cidr", "length_end")?.unwrap_or(u32::BITS);
+    let length_start: u32 =
+        parse_cidr_prefix_length_and_check_bounds(args, "length_start", 0u32, u32::BITS)?
+            .unwrap_or(0u32);
+    let length_end: u32 =
+        parse_cidr_prefix_length_and_check_bounds(args, "length_end", 0u32, u32::BITS)?
+            .unwrap_or(u32::BITS);
 
     let random_prefix_length: u32 = thread_rng().gen_range(length_start..=length_end);
     let bits_to_shift: u32 = u32::BITS - random_prefix_length;
@@ -175,15 +212,23 @@ pub fn random_ipv4_cidr(args: &HashMap<String, Value>) -> Result<Value> {
 
 /// A Tera function to generate a random IPv6 CIDR address.
 ///
-/// The `start` parameter takes an IPv6 address to indicate the beginning of the
-/// range (inclusive). If `start` is not passed in, it defaults to `::`.
+/// The `length_start` parameter takes an integer between 0 and 128 (inclusive) to indicate the
+/// random prefix length of the generated CIDR should be at least `length_start`. If
+/// `length_start` is not passed in, it defaults to 0.
 ///
-/// The `end` parameter also takes an IPv6 address indicating the end of the range,
-/// which is also inclusive. An inclusive range allows `ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff`
-/// to be sampled where an exclusive range does not. If `end` is not passed in, it defaults to
-/// `ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff`.
+/// The `length_end` parameter takes an integer between 0 and 128 (inclusive) to indicate the
+/// random prefix length of the generated CIDR should be at most `length_end`. If
+/// `length_end` is not passed in, it defaults to 128.
 ///
-/// It is possible to pass in both `start` and `end`, just one of them, or neither.
+/// The `addr_start` parameter takes an IPv4 address. This address will be used as the inclusive
+/// lower bound for generating the random address before the address is masked into a prefix.
+/// If `addr_start` is not passed in, it defaults to `::`.
+///
+/// The `addr_end` parameter takes an IPv4 address. This address will be used as the inclusive
+/// upper bound for generating the random address before the address is masked into a prefix.
+/// If `addr_start` is not passed in, it defaults to `ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff`.
+///
+/// All of these parameters are optional, and it is possible to use any combination.
 ///
 /// # Example usage
 ///
@@ -195,33 +240,64 @@ pub fn random_ipv4_cidr(args: &HashMap<String, Value>) -> Result<Value> {
 /// tera.register_function("random_ipv6_cidr", random_ipv6_cidr);
 /// let context: Context = Context::new();
 ///
-/// // bound by both start and end
-/// let rendered: String = tera
-///     .render_str(r#"{{ random_ipv6_cidr(start="fc00::/8", end="fd00::/8") }}"#, &context)
-///     .unwrap();
-/// // bound by just start
-/// let rendered: String = tera
-///     .render_str(r#"{{ random_ipv6_cidr(start="fc00::/8") }}"#, &context)
-///     .unwrap();
-/// // bound by just end
-/// let rendered: String = tera
-///     .render_str(r#"{{ random_ipv6_cidr(end="fd00::/8") }}"#, &context)
-///     .unwrap();
-/// // bound by neither start nor end
+/// // bound by neither prefix bit values nor the prefix length
 /// let rendered: String = tera
 ///     .render_str("{{ random_ipv6_cidr() }}", &context)
 ///     .unwrap();
+///
+/// // prefix length bound by start and end lengths
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv6_cidr(length_start=64, length_end=80) }}"#, &context)
+///     .unwrap();
+/// // prefix length bound by start length
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv6_cidr(length_start=64) }}"#, &context)
+///     .unwrap();
+/// // prefix length bound by end length
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv6_cidr(length_end=80) }}"#, &context)
+///     .unwrap();
+///
+/// // prefix bits bound by a start address and end address
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv6_cidr(addr_start="fc00::", addr_end="fd00::") }}"#, &context)
+///     .unwrap();
+/// // prefix bits bound by a start address
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv6_cidr(start="fc00::") }}"#, &context )
+///     .unwrap();
+/// // prefix bits bound by an end address
+/// let rendered: String = tera
+///     .render_str(r#"{{ random_ipv6_cidr(addr_end="fd00::") }}"#, &context)
+///     .unwrap();
+///
+/// // prefix length bound by both prefix bit values and length
+/// let rendered: String = tera
+///     .render_str(
+///         r#"{{ random_ipv6_cidr(
+///                   addr_start="fc00::",
+///                   addr_end="fd00::",
+///                   length_start=64,
+///                   length_end=80
+///               ) }}"#,
+///         &context
+///     )
+///     .unwrap();
 /// ```
 pub fn random_ipv6_cidr(args: &HashMap<String, Value>) -> Result<Value> {
-    let addr_start_opt: Option<u128> = parse_arg(args, "random_ipv6_cidr", "addr_start")?
-        .map(|addr_start: Ipv6Addr| addr_start.into());
+    let addr_start_opt: Option<u128> =
+        parse_arg(args, "addr_start")?.map(|addr_start: Ipv6Addr| addr_start.into());
     let addr_end_opt: Option<u128> =
-        parse_arg(args, "random_ipv6_cidr", "addr_end")?.map(|addr_end: Ipv6Addr| addr_end.into());
+        parse_arg(args, "addr_end")?.map(|addr_end: Ipv6Addr| addr_end.into());
 
     let random_addr: u128 = gen_value_in_range(addr_start_opt, addr_end_opt, u128::MIN, u128::MAX);
 
-    let length_start: u32 = parse_arg(args, "random_ipv6_cidr", "length_start")?.unwrap_or(0u32);
-    let length_end: u32 = parse_arg(args, "random_ipv6_cidr", "length_end")?.unwrap_or(u128::BITS);
+    let length_start: u32 =
+        parse_cidr_prefix_length_and_check_bounds(args, "length_start", 0u32, u128::BITS)?
+            .unwrap_or(0u32);
+    let length_end: u32 =
+        parse_cidr_prefix_length_and_check_bounds(args, "length_end", 0u32, u128::BITS)?
+            .unwrap_or(u128::BITS);
 
     let random_prefix_length: u32 = thread_rng().gen_range(length_start..=length_end);
     let bits_to_shift: u32 = u128::BITS - random_prefix_length;
@@ -237,13 +313,31 @@ pub fn random_ipv6_cidr(args: &HashMap<String, Value>) -> Result<Value> {
     Ok(json_value)
 }
 
+fn parse_cidr_prefix_length_and_check_bounds(
+    args: &HashMap<String, Value>,
+    parameter: &'static str,
+    start_bound: u32,
+    end_bound: u32,
+) -> tera::Result<Option<u32>> {
+    parse_arg(args, parameter)?
+        .map(|length: u32| {
+            if length < start_bound || length > end_bound {
+                Err(cidr_prefix_length_out_of_bounds(
+                    length,
+                    start_bound,
+                    end_bound,
+                ))
+            } else {
+                Ok(length)
+            }
+        })
+        .transpose()
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::common::tests::test_tera_rand_function;
+    use crate::common::tests::{test_tera_rand_function, test_tera_rand_function_returns_error};
     use crate::net::*;
-    use crate::random_string;
-    use regex::Regex;
-    use tera::{Context, Tera};
     use tracing_test::traced_test;
 
     // ipv4 address
@@ -447,6 +541,26 @@ mod tests {
         );
     }
 
+    #[test]
+    #[traced_test]
+    fn test_random_ipv4_cidr_with_too_large_prefix_length_returns_error() {
+        test_tera_rand_function_returns_error(
+            random_ipv4_cidr,
+            "random_ipv4_cidr",
+            r#"{ "some_field": "{{ random_ipv4_cidr(length_start=0, length_end=33) }}" }"#,
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_random_ipv4_cidr_with_too_small_prefix_length_returns_error() {
+        test_tera_rand_function_returns_error(
+            random_ipv4_cidr,
+            "random_ipv4_cidr",
+            r#"{ "some_field": "{{ random_ipv4_cidr(length_start=-1, length_end=16) }}" }"#,
+        );
+    }
+
     // ipv6 cidr
     #[test]
     #[traced_test]
@@ -516,24 +630,21 @@ mod tests {
 
     #[test]
     #[traced_test]
-    fn doc_test() {
-        let mut tera: Tera = Tera::default();
-        tera.register_function("random_string", random_string);
-        tera.register_function("random_ipv4_cidr", random_ipv4_cidr);
+    fn test_random_ipv6_cidr_with_too_large_prefix_length_returns_error() {
+        test_tera_rand_function_returns_error(
+            random_ipv6_cidr,
+            "random_ipv6_cidr",
+            r#"{ "some_field": "{{ random_ipv6_cidr(length_start=0, length_end=129) }}" }"#,
+        );
+    }
 
-        let context: Context = Context::new();
-        // generate a random String and a random IPv4 CIDR address in a JSON template string
-        let rendered_json: String = tera
-            .render_str(
-                r#"{"hostname": "{{ random_string() }}", "subnet": "{{ random_ipv4_cidr() }}"}"#,
-                &context,
-            )
-            .unwrap();
-
-        let expected_json: Regex =
-            Regex::new(r#"\{"hostname": "[\d\w]{8}", "subnet": "\d+\.\d+\.\d+\.\d+/\d+"}"#)
-                .unwrap();
-
-        assert!(expected_json.is_match(rendered_json.as_str()));
+    #[test]
+    #[traced_test]
+    fn test_random_ipv6_cidr_with_too_small_prefix_length_returns_error() {
+        test_tera_rand_function_returns_error(
+            random_ipv6_cidr,
+            "random_ipv6_cidr",
+            r#"{ "some_field": "{{ random_ipv6_cidr(length_start=-1, length_end=16) }}" }"#,
+        );
     }
 }

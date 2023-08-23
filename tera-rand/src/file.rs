@@ -33,24 +33,24 @@ lazy_static! {
 ///     .unwrap();
 /// ```
 pub fn random_from_file(args: &HashMap<String, Value>) -> Result<Value> {
-    let filepath_opt: Option<String> = parse_arg(args, "random_from_file", "path")?;
-    let filepath: String = filepath_opt.ok_or_else(|| missing_arg("random_from_file", "path"))?;
+    let filepath_opt: Option<String> = parse_arg(args, "path")?;
+    let filepath: String = filepath_opt.ok_or_else(|| missing_arg("path"))?;
 
     // read the file only if we haven't read it before
     if !FILE_CACHE.contains_key(&filepath) {
-        let input_file: File = File::open(&filepath)
-            .map_err(|source| read_file_error("random_from_file", filepath.clone(), source))?;
+        let input_file: File =
+            File::open(&filepath).map_err(|source| read_file_error(filepath.clone(), source))?;
         let buf_reader: BufReader<File> = BufReader::new(input_file);
 
         let mut file_values: Vec<String> = Vec::new();
         for line_result in buf_reader.lines() {
-            let line: String = line_result
-                .map_err(|source| read_file_error("random_from_file", filepath.clone(), source))?;
+            let line: String =
+                line_result.map_err(|source| read_file_error(filepath.clone(), source))?;
             file_values.push(line);
         }
 
         if file_values.is_empty() {
-            return Err(empty_file("random_from_file", filepath));
+            return Err(empty_file(filepath));
         }
         FILE_CACHE.insert(filepath.clone(), file_values);
     }
@@ -80,7 +80,7 @@ pub fn random_from_file(args: &HashMap<String, Value>) -> Result<Value> {
 
 #[cfg(test)]
 mod tests {
-    use crate::common::tests::test_tera_rand_function;
+    use crate::common::tests::{test_tera_rand_function, test_tera_rand_function_returns_error};
     use crate::file::*;
     use tracing_test::traced_test;
 
@@ -92,6 +92,27 @@ mod tests {
             "random_from_file",
             r#"{ "some_field": "{{ random_from_file(path="resources/test/days.txt") }}" }"#,
             r#"\{ "some_field": "(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)" }"#,
+        )
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_with_file_with_one_item() {
+        test_tera_rand_function(
+            random_from_file,
+            "random_from_file",
+            r#"{ "some_field": "{{ random_from_file(path="resources/test/file_with_one_item.txt") }}" }"#,
+            r#"\{ "some_field": "item" }"#,
+        )
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_error_with_empty_file() {
+        test_tera_rand_function_returns_error(
+            random_from_file,
+            "random_from_file",
+            r#"{ "some_field": "{{ random_from_file(path="resources/test/empty_file.txt") }}" }"#,
         )
     }
 }

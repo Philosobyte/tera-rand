@@ -7,7 +7,6 @@
 //! Your Tera templates may then use that function:
 //!
 //! ```edition2021
-//! use regex::Regex;
 //! use tera::{Context, Tera};
 //! use tera_rand::random_string;
 //! use tera_rand::random_ipv4_cidr;
@@ -24,11 +23,12 @@
 //!         &context
 //!     )
 //!     .unwrap();
+//! ```
 //!
-//! // Tera should have inserted random values wherever the functions were called
-//! let expected_json: Regex =
-//!     Regex::new(r#"\{"hostname": "[\d\w]{8}", "subnet": "\d+\.\d+\.\d+\.\d+/\d+"}"#).unwrap();
-//! assert!(expected_json.is_match(rendered_json.as_str()));
+//! Tera takes the template String, inserts random values wherever the functions were called, and
+//! spits out a rendered String, which in this case might look like this:
+//! ```json
+//! {"hostname": "VtNCOgwH", "subnet": "196.119.240.0/23"}
 //! ```
 //!
 //! Some functions provide customization parameters. For example, [`random_string`] provides a

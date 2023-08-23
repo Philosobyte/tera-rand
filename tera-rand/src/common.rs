@@ -17,7 +17,6 @@ use tera::{from_value, to_value, Result, Value};
 // argument is found, but Tera fails to parse it, this function returns a `tera::Result::Err`.
 pub(crate) fn parse_arg<T>(
     args: &HashMap<String, Value>,
-    function: &'static str,
     parameter: &'static str,
 ) -> Result<Option<T>>
 where
@@ -27,7 +26,7 @@ where
         .cloned()
         .map(|length_value| from_value(length_value))
         .transpose()
-        .map_err(|source| arg_parse_error(function, parameter, source))
+        .map_err(|source| arg_parse_error(parameter, source))
 }
 
 // Generate a random value.
@@ -65,7 +64,6 @@ where
 // result into a value for Tera to render.
 pub(crate) fn parse_range_and_gen_value_in_range<T>(
     args: &HashMap<String, Value>,
-    function: &'static str,
     default_start: T,
     default_end: T,
 ) -> Result<Value>
@@ -74,8 +72,8 @@ where
     RangeInclusive<T>: SampleRange<T>,
     Standard: Distribution<T>,
 {
-    let start_opt: Option<T> = parse_arg(args, function, "start")?;
-    let end_opt: Option<T> = parse_arg(args, function, "end")?;
+    let start_opt: Option<T> = parse_arg(args, "start")?;
+    let end_opt: Option<T> = parse_arg(args, "end")?;
 
     let random_value: T = gen_value_in_range(start_opt, end_opt, default_start, default_end);
     let json_value: Value = to_value(random_value)?;
@@ -118,5 +116,22 @@ pub(crate) mod tests {
 
         trace!("render result: {render_result}");
         assert!(expected_regex.is_match(render_result.as_str()));
+    }
+
+    pub(crate) fn test_tera_rand_function_returns_error<F>(
+        function: F,
+        function_name: &str,
+        input_template_str: &str,
+    ) where
+        F: Function + 'static,
+    {
+        let mut tera: Tera = Tera::default();
+        tera.register_function(function_name, function);
+
+        let context: Context = Context::new();
+        let render_result: tera::Result<String> = tera.render_str(input_template_str, &context);
+        trace!("render result: {render_result:?}");
+
+        assert!(render_result.is_err());
     }
 }
