@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use tera::Error;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub(crate) enum TeraRandError {
     #[error("Unable to parse argument for `{0}` due to error")]
     UnableToParseArgument(&'static str, #[source] anyhow::Error),

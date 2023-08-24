@@ -1,0 +1,19 @@
+{
+  "protocol": "{{ random_from_file(path="tera-rand-cli/resources/test/protocol.txt") }}",
+  {% set count = random_uint32(start=1, end=10) -%}
+  "count": {{ count }},
+  "timestamp": {{ now() }}
+  "src_hostname": "{{ random_string(length=10) }}",
+  "src_addr": "{{ random_ipv4() }}",
+  "src_ports": [
+    {% for i in range(end=count) -%}
+      {{ random_uint32(start=49152, end=65535) }}{% if not loop.last %}, {% endif %}
+    {%- endfor %}
+  ],
+  "src_app": "{{ random_string() }}",
+
+  "dst_hostname": "{{ random_string(length=10) }}",
+  "dst_addr":  "{{ random_ipv4() }}",
+  "dst_port": {{ random_uint32(end=49151) }},
+  "dst_app": "{{ random_string() }}"
+}
