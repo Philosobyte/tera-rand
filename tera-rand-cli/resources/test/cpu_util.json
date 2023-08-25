@@ -1,0 +1,1 @@
+{"hostname": "{{ random_string() }}", "cpu_util": {{ random_uint32(start=0, end=100) }}}
