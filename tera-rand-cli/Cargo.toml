@@ -22,3 +22,5 @@ thiserror = "=1.0.47"
 [dev-dependencies]
 assert_cmd = "=2.0.12"
 regex = "=1.9.3"
+tracing = "=0.1.37"
+tracing-test = "=0.2.4"

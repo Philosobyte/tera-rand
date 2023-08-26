@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         toolchain:
-          - nightly
+          - stable
     steps:
       - uses: actions/checkout@v3
       - name: Update Toolchain
