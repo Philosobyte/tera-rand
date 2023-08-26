@@ -14,11 +14,11 @@ rust-version = "1.72"
 anyhow = "=1.0.75"
 clap = { version = "=4.3.23", features = ["derive"] }
 chrono = "=0.4.26"
-dashmap = "=5.5.1"
 iso8601 = "=0.6.1"
 tera = "=1.19.0"
 tera-rand = { version = "=0.1.0", path = "../tera-rand" }
 thiserror = "=1.0.47"
-tracing = "=0.1.37"
-tracing-subscriber = "=0.3.17"
-tracing-test = "=0.2.4"
+
+[dev-dependencies]
+assert_cmd = "=2.0.12"
+regex = "=1.9.3"

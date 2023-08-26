@@ -2,6 +2,8 @@
 //!
 //! A crate of random data generation functions for the [Tera] template engine.
 //!
+//! For a CLI tool implementation using this crate, see [tera-rand-cli].
+//!
 //! # Example usage
 //! Import the function you would like to use, and register it with [`Tera::register_function`].
 //! Your Tera templates may then use that function:
@@ -50,6 +52,7 @@
 //! ```
 //!
 //! [Tera]: https://github.com/Keats/tera
+//! [tera-rand-cli]: https://docs.rs/tera-rand-cli
 //! [`Tera::register_function`]: https://docs.rs/tera/latest/tera/struct.Tera.html#method.register_function
 //! [`random_string`]: crate::random_string
 //! [`random_ipv4_cidr`]: crate::random_ipv4_cidr
@@ -57,6 +60,9 @@
 
 mod common;
 mod error;
+
+// public functions live in separate modules for maintainability,
+// but expose them in the root module for searchability
 
 mod file;
 pub use file::*;

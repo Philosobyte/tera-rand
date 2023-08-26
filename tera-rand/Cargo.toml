@@ -11,20 +11,20 @@ repository = "https://github.com/Philosobyte/tera-rand"
 rust-version = "1.72"
 
 [dependencies]
-anyhow = "=1.0.75"
-dashmap = "=5.5.1"
-lazy_static = "=1.4.0"
-rand = "=0.8.5"
-serde = "=1.0.185"
-tera = "=1.19.0"
-thiserror = "=1.0.47"
-uuid = { version = "=1.4.1", features = ["v4"], optional = true }
+anyhow = "1.0"
+dashmap = "5.5"
+lazy_static = "1.4"
+rand = "0.8"
+serde = "1.0"
+tera = "1.19"
+thiserror = "1.0"
+uuid = { version = "1.4", features = ["v4"], optional = true }
 
 [dev-dependencies]
-regex = "=1.9.3"
-tracing = "=0.1.37"
-tracing-subscriber = "=0.3.17"
-tracing-test = "=0.2.4"
+regex = "1.9"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+tracing-test = "0.2"
 
 [features]
 default = ["uuid",]
