@@ -5,12 +5,28 @@
 [![docs]][`tera-rand` documentation]
 [![rustc version 1.72+]][rust 1.72]
 
-`tera-rand` is a library of random data generation functions for the [Tera] template engine. Please see [`tera-rand` 
-documentation] for example usage.
+## tera-rand
+`tera-rand` is a library of random data generation functions for the [Tera] template engine. 
 
-`tera-rand-cli` is a command-line tool for generating a feed of random data from a [Tera] template. This random data 
-can be useful for tasks such as simulating traffic or populate data stores. Please see [`tera-rand-cli` documentation] 
-for more details.
+To use `tera-rand` in your project, include the following in your `Cargo.toml`:
+```toml
+[dependencies]
+tera-rand = "0.1.2"
+```
+
+Please see [`tera-rand` documentation] for examples on using `tera-rand` functions.
+
+## tera-rand-cli
+
+`tera-rand-cli` is a command-line tool for generating a feed of random data from a [Tera] template. 
+This random data can be useful for tasks such as simulating traffic or populate data stores. Please
+see [`tera-rand-cli` documentation] for examples and use cases.
+
+You can install a `tera-rand-cli` binary from crates.io using `cargo install tera-rand-cli@0.1.1`. 
+
+Alternatively, if you would like to build from source, ensure you have Rust installed at version
+1.72 or higher. Then, checkout this repository and run`cargo build --release` from the root 
+project directory. The binary should be located under directory `target/release`.
 
 [build status]: https://img.shields.io/github/actions/workflow/status/philosobyte/tera-rand/ci.yml?branch=main
 [actions]: https://github.com/philosobyte/tera-rand/actions?query=branch%3Amain
