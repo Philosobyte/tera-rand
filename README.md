@@ -1,4 +1,10 @@
-# tera-rand &emsp; [![build status]][actions] [![latest version]][crates.io] [![tera-rand: rustc Version 1.72+]][rust 1.72] [![tera-rand-cli: rustc Version 1.72+]][rust 1.72]
+# tera-rand
+
+[![build status]][actions]
+[![latest version]][crates.io]
+[![docs]][`tera-rand` documentation]
+[![rustc version 1.72+]][rust 1.72]
+
 `tera-rand` is a library of random data generation functions for the [Tera] template engine. Please see [`tera-rand` 
 documentation] for example usage.
 
@@ -10,10 +16,10 @@ for more details.
 [actions]: https://github.com/philosobyte/tera-rand/actions?query=branch%3Amain
 [latest version]: https://img.shields.io/crates/v/tera_rand.svg
 [crates.io]: https://crates.io/crates/tera-rand
-
-[Tera]: https://github.com/Keats/tera
-[tera-rand: rustc Version 1.72+]: https://img.shields.io/badge/tera-rand-rustc-1.72+-lightgray.svg
-[tera-rand-cli: rustc Version 1.72+]: https://img.shields.io/badge/tera-rand-cli-rustc-1.72+-lightgray.svg
+[docs]: https://docs.rs/tera-rand/badge.svg
+[rustc version 1.72+]: https://img.shields.io/badge/rustc-1.72+-lightgray.svg
 [rust 1.72]: https://blog.rust-lang.org/2023/08/24/Rust-1.72.0.html
 [`tera-rand` documentation]: https://docs.rs/tera-rand
 [`tera-rand-cli` documentation]: https://docs.rs/tera-rand-cli
+
+[Tera]: https://github.com/Keats/tera

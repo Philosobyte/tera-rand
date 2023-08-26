@@ -4,14 +4,6 @@ use regex::Regex;
 use std::process::Output;
 
 #[test]
-fn test() {
-    let mut cmd: Command = Command::cargo_bin("tera-rand-cli").unwrap();
-    cmd.args(&["-f", "resources/test/cpu_util.json", "--recor-limit", "5"]);
-    let output: Output = cmd.unwrap();
-    println!("output: {:?}", output);
-}
-
-#[test]
 fn test_simple_output_with_record_limit() {
     let mut cmd: Command = Command::cargo_bin("tera-rand-cli").unwrap();
     cmd.args(&["-f", "resources/test/cpu_util.json", "--record-limit", "1"]);
