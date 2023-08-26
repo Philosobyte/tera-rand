@@ -1,6 +1,6 @@
 [package]
 name = "tera-rand-cli"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Raymond Liu <philosobyte@gmail.com>"]
 categories = ["template-engine", "command-line-utilities"]
 description = "A CLI tool for generating a feed of random data from a Tera template"
@@ -16,7 +16,7 @@ clap = { version = "=4.3.23", features = ["derive"] }
 chrono = "=0.4.26"
 iso8601 = "=0.6.1"
 tera = "=1.19.0"
-tera-rand = { version = "=0.1.1", path = "../tera-rand" }
+tera-rand = { version = "=0.1.2", path = "../tera-rand" }
 thiserror = "=1.0.47"
 
 [dev-dependencies]
