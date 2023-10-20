@@ -41,20 +41,7 @@ pub(crate) enum TeraRandError {
 impl Into<tera::Error> for TeraRandError {
     fn into(self) -> Error {
         match &self {
-            Self::UnableToParseArgument(_parameter, _source) => tera::Error::msg(self),
-            Self::UnsupportedArgument {
-                parameter: _parameter,
-                argument: _argument,
-            } => tera::Error::msg(self),
-            Self::RequiredArgumentMissing(_parameter) => tera::Error::msg(self),
-            Self::UnableToReadFile(_path, _source) => tera::Error::msg(self),
-            Self::EmptyFile(_path) => tera::Error::msg(self),
-            Self::CidrPrefixLengthOutOfBounds {
-                provided_bound: _provided_bound,
-                valid_bound_start: _valid_bound_start,
-                valid_bound_end: _valid_bound_end,
-            } => tera::Error::msg(self),
-            Self::Internal(_msg) => tera::Error::msg(self.to_string()),
+            _ => Error::msg(self),
         }
     }
 }

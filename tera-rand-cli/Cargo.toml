@@ -12,15 +12,15 @@ rust-version = "1.72"
 
 [dependencies]
 anyhow = "=1.0.75"
-clap = { version = "=4.3.23", features = ["derive"] }
-chrono = "=0.4.26"
+clap = { version = "=4.4.6", features = ["derive"] }
+chrono = "=0.4.31"
 iso8601 = "=0.6.1"
-tera = "=1.19.0"
+tera = "=1.19.1"
 tera-rand = { version = "=0.1.2", path = "../tera-rand" }
-thiserror = "=1.0.47"
+thiserror = "=1.0.50"
 
 [dev-dependencies]
 assert_cmd = "=2.0.12"
-regex = "=1.9.3"
-tracing = "=0.1.37"
+regex = "=1.10.2"
+tracing = "=0.1.40"
 tracing-test = "=0.2.4"
