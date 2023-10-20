@@ -1,6 +1,6 @@
 [package]
 name = "tera-rand"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Raymond Liu <philosobyte@gmail.com>"]
 categories = ["template-engine",]
 description = "A suite of random data generation functions for the Tera template engine"
