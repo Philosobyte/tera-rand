@@ -33,10 +33,72 @@ lazy_static! {
 ///     .unwrap();
 /// ```
 pub fn random_from_file(args: &HashMap<String, Value>) -> Result<Value> {
+    let filepath: Option<String> = parse_arg(args, "path")?;
+    let filepath: String = filepath.ok_or_else(|| missing_arg("path"))?;
+
+    let possible_values_ref: Ref<String, Vec<String>> = read_all_file_lines(filepath)?;
+    let possible_values: &Vec<String> = possible_values_ref.value();
+
+    let index_to_sample: usize = thread_rng().gen_range(0usize..possible_values.len());
+    convert_line_to_json_value(possible_values_ref.key(), possible_values, index_to_sample)
+}
+
+/// A Tera function to sample a specific value from a line-delimited file of strings. The filepath
+/// should be passed in as an argument to the `path` parameter. The 0-indexed line number should
+/// be passed in as an argument to the `line_num` parameter.
+///
+/// Note that the contents of the filepath is read only once and cached.
+///
+/// # Example usage
+///
+/// ```edition2021
+/// use tera::{Context, Tera};
+/// use tera_rand::line_from_file;
+/// let mut tera: Tera = Tera::default();
+/// tera.register_function("line_from_file", line_from_file);
+/// let context: Context = Context::new();
+/// let rendered: String = tera
+///     .render_str(
+///         r#"{{ line_from_file(path="resources/test/addresses.txt", line_num=2) }}"#,
+///         &context
+///     )
+///     .unwrap();
+/// ```
+pub fn line_from_file(args: &HashMap<String, Value>) -> Result<Value> {
     let filepath_opt: Option<String> = parse_arg(args, "path")?;
     let filepath: String = filepath_opt.ok_or_else(|| missing_arg("path"))?;
 
-    // read the file only if we haven't read it before
+    let line_num: Option<usize> = parse_arg(args, "line_num")?;
+    let line_num: usize = line_num.ok_or_else(|| missing_arg("line_num"))?;
+
+    let possible_values_ref = read_all_file_lines(filepath)?;
+    let possible_values: &Vec<String> = possible_values_ref.value();
+
+    convert_line_to_json_value(possible_values_ref.key(), possible_values, line_num)
+}
+
+fn convert_line_to_json_value(
+    filename: &String,
+    possible_values: &Vec<String>,
+    line_num: usize
+) -> Result<Value> {
+    match possible_values.get(line_num) {
+        Some(sampled_value) => {
+            let json_value = to_value(sampled_value)?;
+            Ok(json_value)
+        }
+        None => {
+            Err(internal_error(format!(
+                "Unable to sample value with line number {} for file at path {}",
+                line_num, filename
+            )))
+        },
+    }
+}
+
+// Read the entire file in and store the individual lines if we haven't seen it before.
+// Otherwise, return the existing lines.
+fn read_all_file_lines<'a>(filepath: String) -> Result<Ref<'a, String, Vec<String>>> {
     if !FILE_CACHE.contains_key(&filepath) {
         let input_file: File =
             File::open(&filepath).map_err(|source| read_file_error(filepath.clone(), source))?;
@@ -54,28 +116,10 @@ pub fn random_from_file(args: &HashMap<String, Value>) -> Result<Value> {
         }
         FILE_CACHE.insert(filepath.clone(), file_values);
     }
-    let possible_values_opt: Option<Ref<String, Vec<String>>> = FILE_CACHE.get(&filepath);
-
-    match possible_values_opt {
-        Some(reference) => {
-            let possible_values: &Vec<String> = reference.value();
-            let index_to_sample: usize = thread_rng().gen_range(0usize..possible_values.len());
-
-            match possible_values.get(index_to_sample) {
-                Some(sampled_value) => {
-                    let json_value = to_value(sampled_value)?;
-                    Ok(json_value)
-                }
-                None => Err(internal_error(format!(
-                    "Unable to sample value with line number {} for file at path {}",
-                    index_to_sample, filepath
-                ))),
-            }
-        }
-        None => Err(internal_error(format!(
-            "File cache did not contain an entry for file {filepath}"
-        ))),
-    }
+    FILE_CACHE.get(&filepath)
+        .ok_or_else(|| internal_error(
+            format!("File cache did not contain an entry for file {filepath}")
+        ))
 }
 
 #[cfg(test)]

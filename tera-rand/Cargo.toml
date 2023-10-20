@@ -1,6 +1,6 @@
 [package]
 name = "tera-rand"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Raymond Liu <philosobyte@gmail.com>"]
 categories = ["template-engine",]
 description = "A suite of random data generation functions for the Tera template engine"
@@ -18,10 +18,10 @@ rand = "0.8"
 serde = "1.0"
 tera = "1.19"
 thiserror = "1.0"
-uuid = { version = "1.4", features = ["v4"], optional = true }
+uuid = { version = "1.5", features = ["v4"], optional = true }
 
 [dev-dependencies]
-regex = "1.9"
+regex = "1.10"
 tracing = "0.1"
 tracing-test = "0.2"
 
