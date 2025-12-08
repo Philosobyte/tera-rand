@@ -1,6 +1,6 @@
 use crate::common::{gen_value_in_range, parse_arg};
 use crate::error::cidr_prefix_length_out_of_bounds;
-use rand::{thread_rng, Rng};
+use rand::{rng, Rng};
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use tera::{to_value, Result, Value};
@@ -196,7 +196,7 @@ pub fn random_ipv4_cidr(args: &HashMap<String, Value>) -> Result<Value> {
         parse_cidr_prefix_length_and_check_bounds(args, "length_end", 0u32, u32::BITS)?
             .unwrap_or(u32::BITS);
 
-    let random_prefix_length: u32 = thread_rng().gen_range(length_start..=length_end);
+    let random_prefix_length: u32 = rng().random_range(length_start..=length_end);
     let bits_to_shift: u32 = u32::BITS - random_prefix_length;
 
     let random_prefix: u32 = match bits_to_shift {
@@ -299,7 +299,7 @@ pub fn random_ipv6_cidr(args: &HashMap<String, Value>) -> Result<Value> {
         parse_cidr_prefix_length_and_check_bounds(args, "length_end", 0u32, u128::BITS)?
             .unwrap_or(u128::BITS);
 
-    let random_prefix_length: u32 = thread_rng().gen_range(length_start..=length_end);
+    let random_prefix_length: u32 = rng().random_range(length_start..=length_end);
     let bits_to_shift: u32 = u128::BITS - random_prefix_length;
 
     let random_prefix: u128 = match bits_to_shift {

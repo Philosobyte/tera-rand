@@ -1,12 +1,12 @@
 use crate::error::arg_parse_error;
-use rand::distributions::uniform::{SampleRange, SampleUniform};
-use rand::distributions::Standard;
+use rand::distr::uniform::{SampleRange, SampleUniform};
 use rand::prelude::Distribution;
-use rand::{random, thread_rng, Rng};
+use rand::{random, rng, Rng};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::ops::RangeInclusive;
+use rand::distr::StandardUniform;
 use tera::{from_value, to_value, Result, Value};
 
 // Parse an argument for the given `parameter` name from `args`, a map of arguments.
@@ -49,12 +49,12 @@ pub(crate) fn gen_value_in_range<T>(
 where
     T: SampleUniform,
     RangeInclusive<T>: SampleRange<T>,
-    Standard: Distribution<T>,
+    StandardUniform: Distribution<T>,
 {
     match (start_opt, end_opt) {
-        (Some(start), Some(end)) => thread_rng().gen_range(start..=end),
-        (Some(start), None) => thread_rng().gen_range(start..=default_end),
-        (None, Some(end)) => thread_rng().gen_range(default_start..=end),
+        (Some(start), Some(end)) => rng().random_range(start..=end),
+        (Some(start), None) => rng().random_range(start..=default_end),
+        (None, Some(end)) => rng().random_range(default_start..=end),
         (None, None) => random::<T>(),
     }
 }
@@ -70,7 +70,7 @@ pub(crate) fn parse_range_and_gen_value_in_range<T>(
 where
     T: SampleUniform + DeserializeOwned + Serialize,
     RangeInclusive<T>: SampleRange<T>,
-    Standard: Distribution<T>,
+    StandardUniform: Distribution<T>,
 {
     let start_opt: Option<T> = parse_arg(args, "start")?;
     let end_opt: Option<T> = parse_arg(args, "end")?;

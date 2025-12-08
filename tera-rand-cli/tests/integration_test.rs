@@ -1,5 +1,5 @@
 use assert_cmd::output::OutputError;
-use assert_cmd::Command;
+use assert_cmd::{cargo_bin_cmd, Command};
 use regex::Regex;
 use std::process::Output;
 use tracing::trace;
@@ -8,7 +8,7 @@ use tracing_test::traced_test;
 #[test]
 #[traced_test]
 fn test_simple_output_with_record_limit() {
-    let mut cmd: Command = Command::cargo_bin("tera-rand-cli").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tera-rand-cli");
     cmd.args(&["-f", "resources/test/cpu_util.json", "--record-limit", "1"]);
 
     let output: Output = cmd.unwrap();
@@ -23,7 +23,7 @@ fn test_simple_output_with_record_limit() {
 #[test]
 #[traced_test]
 fn test_error_when_file_not_passed_in() {
-    let mut cmd: Command = Command::cargo_bin("tera-rand-cli").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tera-rand-cli");
 
     let output_error: OutputError = cmd.unwrap_err();
     let output: &Output = output_error.as_output().unwrap();
@@ -36,7 +36,7 @@ fn test_error_when_file_not_passed_in() {
 #[test]
 #[traced_test]
 fn test_error_when_file_does_not_exist() {
-    let mut cmd: Command = Command::cargo_bin("tera-rand-cli").unwrap();
+    let mut cmd: Command = cargo_bin_cmd!("tera-rand-cli");
     cmd.args(&["-f", "this-file-does-not-exist.json"]);
 
     let output_error: OutputError = cmd.unwrap_err();
