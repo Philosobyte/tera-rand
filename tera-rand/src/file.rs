@@ -3,7 +3,7 @@ use crate::error::{empty_file, internal_error, missing_arg, read_file_error};
 use dashmap::mapref::one::Ref;
 use dashmap::DashMap;
 use lazy_static::lazy_static;
-use rand::{thread_rng, Rng};
+use rand::{rng, Rng};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -39,7 +39,7 @@ pub fn random_from_file(args: &HashMap<String, Value>) -> Result<Value> {
     let possible_values_ref: Ref<String, Vec<String>> = read_all_file_lines(filepath)?;
     let possible_values: &Vec<String> = possible_values_ref.value();
 
-    let index_to_sample: usize = thread_rng().gen_range(0usize..possible_values.len());
+    let index_to_sample: usize = rng().random_range(0usize..possible_values.len());
     convert_line_to_json_value(possible_values_ref.key(), possible_values, index_to_sample)
 }
 

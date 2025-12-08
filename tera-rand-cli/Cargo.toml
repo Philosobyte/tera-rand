@@ -1,6 +1,6 @@
 [package]
 name = "tera-rand-cli"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Raymond Liu <philosobyte@gmail.com>"]
 categories = ["template-engine", "command-line-utilities"]
 description = "A CLI tool for generating a feed of random data from a Tera template"
@@ -11,16 +11,16 @@ repository = "https://github.com/Philosobyte/tera-rand"
 rust-version = "1.72"
 
 [dependencies]
-anyhow = "=1.0.75"
-clap = { version = "=4.4.6", features = ["derive"] }
-chrono = "=0.4.31"
-iso8601 = "=0.6.1"
-tera = "=1.19.1"
-tera-rand = { version = "=0.2.0", path = "../tera-rand" }
-thiserror = "=1.0.50"
+anyhow = "1.0"
+clap = { version = "=4.5", features = ["derive"] }
+chrono = "0.4"
+iso8601 = "0.6"
+tera = "1.20"
+tera-rand = { version = "0.2", path = "../tera-rand" }
+thiserror = "2.0"
 
 [dev-dependencies]
-assert_cmd = "=2.0.12"
-regex = "=1.10.2"
-tracing = "=0.1.40"
-tracing-test = "=0.2.4"
+assert_cmd = "2.1"
+regex = "1.12"
+tracing = "0.1"
+tracing-test = "0.2"

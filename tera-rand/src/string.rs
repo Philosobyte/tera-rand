@@ -1,7 +1,7 @@
 use crate::common::parse_arg;
 use crate::error::unsupported_arg;
-use rand::distributions::{Alphanumeric, DistString, Standard};
-use rand::thread_rng;
+use rand::distr::{Alphanumeric, SampleString, StandardUniform};
+use rand::rng;
 use std::collections::HashMap;
 use tera::{to_value, Result, Value};
 
@@ -32,9 +32,9 @@ use tera::{to_value, Result, Value};
 /// let rendered: String = tera
 ///     .render_str(r#"{{ random_string(space="alphanumeric") }}"#, &context)
 ///     .unwrap();
-/// // use standard space
+/// // use standard uniform space
 /// let rendered: String = tera
-///     .render_str(r#"{{ random_string(space="standard") }}"#, &context)
+///     .render_str(r#"{{ random_string(space="standard-uniform") }}"#, &context)
 ///     .unwrap();
 /// ```
 pub fn random_string(args: &HashMap<String, Value>) -> Result<Value> {
@@ -44,8 +44,8 @@ pub fn random_string(args: &HashMap<String, Value>) -> Result<Value> {
         parse_arg(args, "space")?.unwrap_or_else(|| String::from("alphanumeric"));
 
     let random_string: String = match space_as_string.as_str() {
-        "alphanumeric" => Ok(Alphanumeric.sample_string(&mut thread_rng(), str_length)),
-        "standard" => Ok(Standard.sample_string(&mut thread_rng(), str_length)),
+        "alphanumeric" => Ok(Alphanumeric.sample_string(&mut rng(), str_length)),
+        "standard-uniform" => Ok(StandardUniform.sample_string(&mut rng(), str_length)),
         _ => Err(unsupported_arg("space", space_as_string)),
     }?;
     let json_value: Value = to_value(random_string)?;
@@ -97,7 +97,7 @@ mod tests {
         test_tera_rand_function(
             random_string,
             "random_string",
-            r#"{ "some_field": "{{ random_string(space="standard") }}" }"#,
+            r#"{ "some_field": "{{ random_string(space="standard-uniform") }}" }"#,
             r#"\{ "some_field": ".{8}" }"#,
         );
     }
@@ -108,7 +108,7 @@ mod tests {
         test_tera_rand_function(
             random_string,
             "random_string",
-            r#"{ "some_field": "{{ random_string(space="standard", length=12) }}" }"#,
+            r#"{ "some_field": "{{ random_string(space="standard-uniform", length=12) }}" }"#,
             r#"\{ "some_field": ".{12}" }"#,
         );
     }

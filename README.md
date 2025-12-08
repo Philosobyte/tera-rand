@@ -12,7 +12,7 @@
 To use `tera-rand` in your project, include the following in your `Cargo.toml`:
 ```toml
 [dependencies]
-tera-rand = "0.1.2"
+tera-rand = "0.2.1"
 ```
 
 Please see [`tera-rand` documentation] for examples on using `tera-rand` functions.
@@ -25,7 +25,7 @@ This random data can be useful for tasks such as simulating traffic or populate 
 
 ### Installation
 
-You can install a `tera-rand-cli` binary from crates.io using `cargo install tera-rand-cli@0.1.1`. 
+You can install a `tera-rand-cli` binary from crates.io using `cargo install tera-rand-cli@0.2.1`. 
 
 Alternatively, if you would like to build from source, ensure you have Rust installed at version
 1.72 or higher. Then, checkout this repository and run`cargo build --release` from the root 
